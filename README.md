@@ -43,13 +43,13 @@ Update margins and display the graph using matplotlib.pyplot<br/>
 
 ***IMPORTING PYTHON PACKAGES :***
 
-```
+```Python
 import pandas as pd # for data manipulation
 import networkx as nx # for drawing graphs
 import matplotlib.pyplot as plt # for drawing graphs
 ```
 ***for creating Bayesian Belief Networks (BBN)***
-```
+```Python
 from pybbn.graph.dag import Bbn
 from pybbn.graph.edge import Edge, EdgeType
 from pybbn.graph.jointree import EvidenceBuilder
@@ -59,45 +59,45 @@ from pybbn.pptc.inferencecontroller import InferenceController
 ```
 
 ***Set Pandas options to display more columns***
-```
+```Python
 pd.options.display.max_columns=50
 ```
 ***READING THE DATA SET :***
-```
+```Python
 df=pd.read_csv('/content/weatherAUS.csv', encoding='utf-8')
 ```
 ***Drop records where target RainTomorrow=NaN***
-```
+```Python
 df=df[pd.isnull(df['RainTomorrow'])==False]
 ```
 ***Drop the 'Date' column as it is not relevant for the model***
-```
+```Python
 df = df.drop(columns='Date')
 ```
 
 ***For other columns with missing values, fill them in with column mean for numeric columns only***
-```
+```Python
 numeric_columns = df.select_dtypes(include=['number']).columns
 ```
 ***Use .loc to explicitly modify the original DataFrame***
-```
+```Python
 df.loc[:, numeric_columns] = df[numeric_columns].fillna(df[numeric_columns].mean())
 ```
 
 ***Create bands for variables that we want to use in the model***
-```
+```Python
 df['WindGustSpeedCat']=df['WindGustSpeed'].apply(lambda x: '0.<=40'   if x<=40 else
                                                             '1.40-50' if 40<x<=50 else '2.>50')
 df['Humidity9amCat']=df['Humidity9am'].apply(lambda x: '1.>60' if x>60 else '0.<=60')
 df['Humidity3pmCat']=df['Humidity3pm'].apply(lambda x: '1.>60' if x>60 else '0.<=60')
 ```
 ***Show a snaphsot of data***
-```
+```Python
 print(df)
 ```
 
 ***This function helps to calculate probability distribution, which goes into BBN (note, can handle up to 2 parents)***
-```
+```Python
 def probs(data, child, parent1=None, parent2=None):
     if parent1==None:
         # Calculate probabilities
@@ -114,7 +114,7 @@ def probs(data, child, parent1=None, parent2=None):
     return prob
 ```
 ***Create nodes by using our earlier function to automatically calculate probabilities***
-```
+```Python
 H9am = BbnNode(Variable(0, 'H9am', ['<=60', '>60']), probs(df, child='Humidity9amCat'))
 H3pm = BbnNode(Variable(1, 'H3pm', ['<=60', '>60']), probs(df, child='Humidity3pmCat', parent1='Humidity9amCat'))
 W = BbnNode(Variable(2, 'W', ['<=40', '40-50', '>50']), probs(df, child='WindGustSpeedCat'))
@@ -122,7 +122,7 @@ RT = BbnNode(Variable(3, 'RT', ['No', 'Yes']), probs(df, child='RainTomorrow', p
 ```
 
 ***Create Network***
-```
+```Python
 bbn = Bbn() \
     .add_node(H9am) \
     .add_node(H3pm) \
@@ -134,16 +134,16 @@ bbn = Bbn() \
 ```
 
 ***Convert the BBN to a join tree***
-```
+```Python
 join_tree = InferenceController.apply(bbn)
 ```
 ***Set node positions***
-```
+```Python
 pos = {0: (-1, 2), 1: (-1, 0.5), 2: (1, 0.5), 3: (0, -1)}
 ```
 
 ***Set options for graph looks***
-```
+```Python
 options = {
     "font_size": 16,
     "node_size": 4000,
@@ -155,13 +155,13 @@ options = {
 ```
 
 ***Generate graph***
-```
+```Python
 n, d = bbn.to_nx_graph()
 nx.draw(n, with_labels=True, labels=d, pos=pos, **options)
 ```
 
 ***Update margins and print the graph***
-```
+```Python
 ax = plt.gca()
 ax.margins(0.10)
 plt.axis("off")
